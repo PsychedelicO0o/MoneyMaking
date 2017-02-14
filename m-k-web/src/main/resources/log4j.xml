@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding="utf-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+    <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="[%d{yyyy-MM-dd HH:mm:ss,SSS}] [%t] [%5p] [%7r] %c.%M():%L - %m%n"/>
+        </layout>
+    </appender>
+
+    <appender name="FILE" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="DatePattern" value="'.'yyyy-MM-dd"/>
+        <param name="Append" value="true"/>
+        <param name="file" value="/export/Logs/big-brother/log.log"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="[%d{yyyy-MM-dd HH:mm:ss,SSS}] [%t] [%5p] [%7r] %c.%M():%L - %m%n"/>
+        </layout>
+    </appender>
+    
+    <category name="org.bit.big.brother.m.k.s" additivity="false">
+        <priority value="INFO"/>
+        <appender-ref ref="INFO"/>
+        <appender-ref ref="CONSOLE"/>
+    </category>
+    
+    <root>
+        <priority value="INFO"/>
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</log4j:configuration>
