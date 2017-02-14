@@ -5,17 +5,22 @@
     <artifactId>MoneyMaking</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>m-k-service</artifactId>
+  <artifactId>m-k-common</artifactId>
   <dependencies>
   	<dependency>
   		<groupId>org.bit.big.brother</groupId>
-  		<artifactId>m-k-common</artifactId>
+  		<artifactId>m-k-domain</artifactId>
   		<version>0.0.1-SNAPSHOT</version>
   	</dependency>
   	<dependency>
-  		<groupId>org.springframework</groupId>
-  		<artifactId>spring-context</artifactId>
-  		<version>4.0.6.RELEASE</version>
+  		<groupId>org.apache.commons</groupId>
+  		<artifactId>commons-lang3</artifactId>
+  		<version>3.4</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.apache.httpcomponents</groupId>
+  		<artifactId>httpclient</artifactId>
+  		<version>4.5.2</version>
   	</dependency>
   </dependencies>
 </project>

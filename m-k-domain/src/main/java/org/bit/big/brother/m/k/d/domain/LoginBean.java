@@ -1,8 +1,15 @@
 package org.bit.big.brother.m.k.d.domain;
 
-public class LoginBean {
+import java.io.Serializable;
 
-	private int lk;
+public class LoginBean implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8334876093089194896L;
+	private String lk = "ddqwewqacs12q21qwe21e1e1212e12e";
+	private int lb;							// 用户名类型
 	private String bh;						// 用户名
 	private String mm;						// 密码
 	private String gjjcxjjmyhpppp;			// 验证码
@@ -24,10 +31,16 @@ public class LoginBean {
 	public void setGjjcxjjmyhpppp(String gjjcxjjmyhpppp) {
 		this.gjjcxjjmyhpppp = gjjcxjjmyhpppp;
 	}
-	public int getLk() {
+	public int getLb() {
+		return lb;
+	}
+	public void setLb(int lb) {
+		this.lb = lb;
+	}
+	public String getLk() {
 		return lk;
 	}
-	public void setLk(int lk) {
+	public void setLk(String lk) {
 		this.lk = lk;
 	}
 }

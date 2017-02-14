@@ -55,6 +55,11 @@
     	<artifactId>commons-digester</artifactId>
     	<version>2.1</version>
     </dependency>
+    <dependency>
+    	<groupId>org.bit.big.brother</groupId>
+    	<artifactId>m-k-service</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
   <build>
     <finalName>m-k-web</finalName>

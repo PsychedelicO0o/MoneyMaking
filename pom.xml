@@ -9,6 +9,7 @@
     <module>m-k-web</module>
     <module>m-k-domain</module>
     <module>m-k-service</module>
+    <module>m-k-common</module>
   </modules>
   <dependencies>
   	<dependency>

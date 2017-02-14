@@ -7,4 +7,11 @@
 		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
+	<bean class="org.bit.big.brother.m.k.c.util.HttpClientUtil">
+		<constructor-arg name="maxTotal" value="400" type="int" />
+		<constructor-arg name="defaultMaxPerRoute" value="50" type="int" />
+		<constructor-arg name="connection_timeout" value="2000" type="int" />
+		<constructor-arg name="connection__request_timeout" value="1000" type="int" />
+		<constructor-arg name="so_timeout" value="2000" type="int" />
+	</bean>
 </beans>
