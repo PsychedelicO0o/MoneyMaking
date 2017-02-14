@@ -2,13 +2,18 @@ package org.bit.big.brother.m.k.c.util;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -99,16 +104,45 @@ public class HttpClientUtil {
         HttpEntity entity = new StringEntity(entityStr, "UTF-8");
         httpPost.setEntity(entity);
 
-        ResponseHandler<String> responseHandler = new CharsetResponseHandler(Charset.forName("UTF-8"));
-        String responseBody = null;
+        ResponseHandler<Map<String,String>> responseHandler = new SessonResponseHandler();
+        Map<String,String> result = null;
         try {
-            responseBody = httpClient.execute(httpPost, responseHandler);
+        	RequestConfig localConfig = RequestConfig.custom()
+        		    .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
+        		    .build();
+        	httpPost.setConfig(localConfig);
+        	result = httpClient.execute(httpPost, responseHandler);
         } catch (Exception e) {
             logger.error("httpClient出错,param=" + entityStr, e);
         } finally {
             httpPost.abort();
         }
-        return responseBody;
+        return result.get("responseBody");
+    }
+    
+    class SessonResponseHandler implements ResponseHandler<Map<String,String>> {
+
+		@Override
+		public Map<String,String> handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+			Map<String,String> result = new HashMap<String,String>();
+            final StatusLine statusLine = response.getStatusLine();
+            final HttpEntity entity = response.getEntity();
+            Header[] headers = response.getAllHeaders();
+            for(int i = 0 ; i < headers.length ; i ++){
+            	if(headers[i].getName().equalsIgnoreCase("set-cookie")){
+            		result.put("cookie",headers[i].getValue());
+            		break;
+            	}
+            }
+            logger.error(result.get("cookie"));
+            if (statusLine.getStatusCode() >= 300) {
+                EntityUtils.consume(entity);
+                throw new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase());
+            }
+            result.put("responseBody", entity == null ? null : EntityUtils.toString(entity));
+            return result;
+		}
+    	
     }
 
     class CharsetResponseHandler implements ResponseHandler<String> {
@@ -120,10 +154,10 @@ public class HttpClientUtil {
         }
 
         public String handleResponse(final HttpResponse response) throws HttpResponseException, IOException {
+        	
             final StatusLine statusLine = response.getStatusLine();
             final HttpEntity entity = response.getEntity();
-
-            logger.error(JSON.toJSONString(response.getAllHeaders()));
+            
             ContentType ct = ContentType.getOrDefault(entity);
             Charset charSet = ct.getCharset();
             if (charSet == null) {
@@ -136,7 +170,5 @@ public class HttpClientUtil {
             }
             return entity == null ? null : EntityUtils.toString(entity, charSet);
         }
-
     }
-
 }
