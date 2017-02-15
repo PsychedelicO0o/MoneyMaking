@@ -10,6 +10,7 @@
     <module>m-k-domain</module>
     <module>m-k-service</module>
     <module>m-k-common</module>
+    <module>m-k-captcha</module>
   </modules>
   <dependencies>
   	<dependency>

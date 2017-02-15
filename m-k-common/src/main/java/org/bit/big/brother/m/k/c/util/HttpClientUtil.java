@@ -1,6 +1,9 @@
 package org.bit.big.brother.m.k.c.util;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +16,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -22,6 +24,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
@@ -35,7 +38,7 @@ public class HttpClientUtil {
     private static Logger logger = LoggerFactory.getLogger(HttpClientUtil.class);
 
     private PoolingHttpClientConnectionManager cm;
-
+    
     private CloseableHttpClient httpClient;
 
     public void destroy() {
@@ -48,7 +51,7 @@ public class HttpClientUtil {
 
     public HttpClientUtil(int maxTotal, int defaultMaxPerRoute, int connection_timeout, int so_timeout, int connection__request_timeout) {
         // 创建Http连接池
-        logger.info("初始化 new httpclient 连接池");
+        logger.info("初始化 httpclient 连接池");
 
         cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(maxTotal);
@@ -62,7 +65,7 @@ public class HttpClientUtil {
     }
 
     public String get(String url) throws Exception {
-        logger.debug("use new HttpClient");
+        
         HttpGet httpGet = new HttpGet(url);
 
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -77,7 +80,7 @@ public class HttpClientUtil {
     }
 
     public String get(String url, String charsetName) throws Exception {
-        logger.debug("use new HttpClient");
+    	
         HttpGet httpGet = new HttpGet(url);
 
         ResponseHandler<String> responseHandler = new CharsetResponseHandler(Charset.forName(charsetName));
@@ -97,9 +100,12 @@ public class HttpClientUtil {
      * @param uri
      * @param object
      * @return
+     * @throws IOException 
      */
-    public String post(String uri, Object object) {
+    public String post(String uri, Object object) throws IOException {
+    	
         HttpPost httpPost = new HttpPost(uri);
+        
         String entityStr = JSON.toJSONString(object);
         HttpEntity entity = new StringEntity(entityStr, "UTF-8");
         httpPost.setEntity(entity);
@@ -107,15 +113,35 @@ public class HttpClientUtil {
         ResponseHandler<Map<String,String>> responseHandler = new SessonResponseHandler();
         Map<String,String> result = null;
         try {
-        	RequestConfig localConfig = RequestConfig.custom()
-        		    .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
-        		    .build();
-        	httpPost.setConfig(localConfig);
         	result = httpClient.execute(httpPost, responseHandler);
-        } catch (Exception e) {
-            logger.error("httpClient出错,param=" + entityStr, e);
         } finally {
             httpPost.abort();
+        }
+        return result.get("responseBody");
+    }
+    
+    public String post(String cookieUrl,String lkIncUrl,String imgUrl,String loginUrl, Object object) throws IOException {
+    	
+        HttpPost cookiePost = new HttpPost(cookieUrl);
+        HttpPost lhIncPost = new HttpPost(lkIncUrl);
+        HttpPost loginPost = new HttpPost(loginUrl);
+        HttpPost imgPost = new HttpPost(imgUrl);
+        
+        String entityStr = JSON.toJSONString(object);
+        HttpEntity entity = new StringEntity(entityStr, "UTF-8");
+        loginPost.setEntity(entity);
+
+        ResponseHandler<Map<String,String>> responseHandler = new SessonResponseHandler();
+        Map<String,String> result = null;
+        try {
+        	result = httpClient.execute(cookiePost, responseHandler);
+        	result = httpClient.execute(lhIncPost, responseHandler);
+        	result = httpClient.execute(loginPost, responseHandler);
+        	File f = httpClient.execute(imgPost, new ImageFileResponseHandler("D:/tmpImg/"+System.currentTimeMillis()+".jpg"));
+        } finally {
+        	cookiePost.abort();
+        	lhIncPost.abort();
+        	loginPost.abort();
         }
         return result.get("responseBody");
     }
@@ -143,6 +169,47 @@ public class HttpClientUtil {
             return result;
 		}
     	
+    }
+    
+    class ImageFileResponseHandler implements ResponseHandler<File>{
+
+    	private String filePathName;
+    	public ImageFileResponseHandler(String filePathName) {
+    		
+    		this.filePathName = filePathName;
+		}
+		@Override
+		public File handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+			
+			final StatusLine statusLine = response.getStatusLine();
+            final HttpEntity entity = response.getEntity();
+            
+            if (statusLine.getStatusCode() >= 300) {
+                EntityUtils.consume(entity);
+                throw new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase());
+            }
+            
+            File storeFile = new File(filePathName);
+			FileOutputStream output = new FileOutputStream(storeFile);
+            
+            if (entity != null) {
+            	InputStream instream = entity.getContent();
+            	try {
+            		byte b[] = new byte[1024];
+            		int j = 0;
+            		while( (j = instream.read(b))!=-1){
+            			output.write(b,0,j);
+            		}
+            	}catch(Exception e){
+            		throw e;
+            	}finally{
+            		output.flush();
+            		output.close();
+            		instream.close();
+            	}
+            }
+			return storeFile;
+		}
     }
 
     class CharsetResponseHandler implements ResponseHandler<String> {
