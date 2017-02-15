@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -28,6 +29,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
+import org.bit.big.brother.m.k.d.domain.LoginBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,24 +122,34 @@ public class HttpClientUtil {
         return result.get("responseBody");
     }
     
-    public String post(String cookieUrl,String lkIncUrl,String imgUrl,String loginUrl, Object object) throws IOException {
+    public String post(String cookieUrl,String lkIncUrl,String imgUrl,String loginUrl, LoginBean loginBean) throws IOException {
     	
         HttpPost cookiePost = new HttpPost(cookieUrl);
         HttpPost lhIncPost = new HttpPost(lkIncUrl);
         HttpPost loginPost = new HttpPost(loginUrl);
         HttpPost imgPost = new HttpPost(imgUrl);
-        
-        String entityStr = JSON.toJSONString(object);
-        HttpEntity entity = new StringEntity(entityStr, "UTF-8");
-        loginPost.setEntity(entity);
 
         ResponseHandler<Map<String,String>> responseHandler = new SessonResponseHandler();
         Map<String,String> result = null;
         try {
         	result = httpClient.execute(cookiePost, responseHandler);
         	result = httpClient.execute(lhIncPost, responseHandler);
-        	result = httpClient.execute(loginPost, responseHandler);
+        	
+        	String reStr = result.get("responseBody").trim();
+        	logger.error(reStr);
+        	loginBean.setLk(reStr.substring(4, reStr.length()));
         	File f = httpClient.execute(imgPost, new ImageFileResponseHandler("D:/tmpImg/"+System.currentTimeMillis()+".jpg"));
+        	
+        	Scanner s = new Scanner(System.in);
+        	
+        	loginBean.setGjjcxjjmyhpppp(s.nextLine());
+        	
+        	String entityStr = JSON.toJSONString(loginBean);
+            HttpEntity entity = new StringEntity(entityStr, "UTF-8");
+            loginPost.setEntity(entity);
+        	
+        	result = httpClient.execute(loginPost, responseHandler);
+        //	
         } finally {
         	cookiePost.abort();
         	lhIncPost.abort();
